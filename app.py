@@ -34,13 +34,15 @@ access_token = get_access_token('user1', '123456')
 app.config['access_token'] = access_token
 
 
-def send_message(url, content):
+def send_message(url, user_id, page_id,message):
     headers = {
         "Authorization": f"Bearer {app.config['access_token']}",
         'Content-Type': 'application/json',
     }
     payload = {
-        'messaging': content,
+        'user_id': user_id,
+        'page_id': page_id,
+        "message": message,
     }
     response = requests.get(
         f"{url}/protected",
@@ -60,7 +62,14 @@ def listen():
 
     else:
         return 'Unsupported request method.'
+@app.route("/customer-responses", methods=['POST'])
+def customer_response():
+    if request.method == 'POST':
+        print(request.json)
+        return "OK"
 
+    else:
+        return 'Unsupported request method.'
 def main():
     access_token = get_access_token('user1', '123456')
     print("Access Token: ", access_token)
