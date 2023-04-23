@@ -3,7 +3,7 @@ from flask import Flask, jsonify,  request
 import os
 import json
 
-
+from Client import MessageSender
 import requests
 app = Flask(__name__)
 
@@ -12,46 +12,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 SERVER_URL = os.getenv("SERVER_URL")
+PAGE_ID = os.getenv("PAGE_ID")
+client = MessageSender(SERVER_URL, PAGE_ID , "user1", "123456")
 
-def get_access_token(username, password):
-    headers = {
-        'Content-Type': 'application/json',
-    }
-    payload = {
-        'username': username,
-        'password': password
-    }
-    response = requests.post(
-        f"{SERVER_URL}/login",
-        headers=headers,
-        data=json.dumps(payload),
-    )
-    if response.status_code != 200:
-        raise ValueError('Failed to send message')
-    return response.json()['access_token']
-
-access_token = get_access_token('user1', '123456')
-app.config['access_token'] = access_token
-
-
-def send_message(url, user_id, page_id,message):
-    headers = {
-        "Authorization": f"Bearer {app.config['access_token']}",
-        'Content-Type': 'application/json',
-    }
-    payload = {
-        'user_id': user_id,
-        'page_id': page_id,
-        "message": message,
-    }
-    response = requests.get(
-        f"{url}/protected",
-        headers=headers,
-        data=json.dumps(payload),
-    )
-    if response.status_code != 200:
-        raise ValueError('Failed to send message')
-    return response.json()
 
 @app.route("/", methods=['GET', 'POST'])
 def listen():
@@ -68,6 +31,24 @@ def customer_response():
         print(request.json)
         return "OK"
 
+    else:
+        return 'Unsupported request method.'
+
+@app.route("/message", methods=['POST'])
+def customer_response():
+    if request.method == 'POST':
+        print(request.json)
+        client.send_message(request.json["user_id"],request.json["message"])
+        return "OK"
+
+    else:
+        return 'Unsupported request method.'
+@app.route("/set_webhook", methods=['POST'])
+def set_webhook():
+    if request.method == 'POST':
+        print(request.json)
+        client.set_server_url(request.json["webhook_url"])
+        return "OK"
     else:
         return 'Unsupported request method.'
 def main():

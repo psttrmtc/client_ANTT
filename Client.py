@@ -47,6 +47,23 @@ class MessageSender:
             raise ValueError('Failed to send message')
         return response.json()
 
+    def set_server_url(self, webhook_url):
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            'webhook_url': webhook_url,
+        }
+        response = requests.post(
+            f"{self.server_url}/protected",
+            headers=headers,
+            data=json.dumps(payload),
+        )
+        if response.status_code != 200:
+            raise ValueError('Failed to send message')
+        return response.json()
+
 
 if __name__ == "__main__":
     load_dotenv()
